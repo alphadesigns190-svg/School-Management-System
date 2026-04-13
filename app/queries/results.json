@@ -1,0 +1,29 @@
+{
+  "queries": {
+    "list": {
+      "sql": "SELECT r.id, r.student_id, s.name AS student_name, r.month, r.quiz1, r.quiz2, r.quiz3, r.quiz4, r.exam20, r.exam30, r.interview, r.total_marks, r.grade FROM Results r LEFT JOIN Students s ON s.id = r.student_id ORDER BY r.id DESC",
+      "params": []
+    },
+    "get": {
+      "sql": "SELECT id, student_id, month, quiz1, quiz2, quiz3, quiz4, exam20, exam30, interview, total_marks, grade FROM Results WHERE id = %s",
+      "params": ["id"]
+    },
+    "insert": {
+      "sql": "INSERT INTO Results (student_id, month, quiz1, quiz2, quiz3, quiz4, exam20, exam30, interview, total_marks, grade) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+      "params": ["student_id", "month", "quiz1", "quiz2", "quiz3", "quiz4", "exam20", "exam30", "interview", "total_marks", "grade"]
+    },
+    "update": {
+      "sql": "UPDATE Results SET student_id = %s, month = %s, quiz1 = %s, quiz2 = %s, quiz3 = %s, quiz4 = %s, exam20 = %s, exam30 = %s, interview = %s, total_marks = %s, grade = %s WHERE id = %s",
+      "params": ["student_id", "month", "quiz1", "quiz2", "quiz3", "quiz4", "exam20", "exam30", "interview", "total_marks", "grade", "id"]
+    },
+    "delete": {
+      "sql": "DELETE FROM Results WHERE id = %s",
+      "params": ["id"]
+    },
+    "students_select": {
+      "sql": "SELECT id, name FROM Students ORDER BY name",
+      "params": []
+    }
+  }
+}
+

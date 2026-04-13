@@ -1,0 +1,47 @@
+{% extends "layout.html" %}
+
+{% block content %}
+  <section class="card">
+    <h2>{{ heading }}</h2>
+    <p class="muted">{{ subheading }}</p>
+  </section>
+
+  <section class="card">
+    <form method="post" action="{{ action or '/payments' }}">
+      <div class="form-grid">
+        <label class="field">
+          <span class="label">Student *</span>
+          <select class="input" name="student_id" required>
+            <option value="">-- Select student --</option>
+            {% for s in students %}
+              {% set selected = (payment and payment.get("student_id") == s.id) %}
+              <option value="{{ s.id }}" {% if selected %}selected{% endif %}>
+                {{ s.name }} ({{ s.id }})
+              </option>
+            {% endfor %}
+          </select>
+        </label>
+
+        <label class="field">
+          <span class="label">Amount *</span>
+          <input class="input" type="number" name="amount" value="{{ payment.get('amount') if payment else '' }}" required />
+        </label>
+
+        <label class="field">
+          <span class="label">Payment Date</span>
+          <input
+            class="input"
+            type="date"
+            name="payment_date"
+            value="{{ (payment.get('payment_date') if payment else default_date) }}"
+          />
+        </label>
+      </div>
+
+      <div class="actions">
+        <button class="btn" type="submit">{{ submit_label }}</button>
+        <a class="btn btn-ghost" href="/payments">Cancel</a>
+      </div>
+    </form>
+  </section>
+{% endblock %}

@@ -1,0 +1,41 @@
+{
+  "id_field": "id",
+  "fields": [
+    { "name": "id", "label": "Student ID", "type": "text", "required": true },
+    { "name": "name", "label": "Name", "type": "text", "required": true },
+    { "name": "father_name", "label": "Father Name", "type": "text", "required": false },
+    { "name": "phone", "label": "Phone", "type": "text", "required": false },
+    {
+      "name": "status",
+      "label": "Status",
+      "type": "select",
+      "required": false,
+      "options": [
+        { "value": "Active", "label": "Active" },
+        { "value": "Inactive", "label": "Inactive" }
+      ]
+    }
+  ],
+  "queries": {
+    "list": {
+      "sql": "SELECT id, name, father_name, phone, status FROM Students ORDER BY id",
+      "params": []
+    },
+    "get": {
+      "sql": "SELECT id, name, father_name, phone, status FROM Students WHERE id = %s",
+      "params": ["id"]
+    },
+    "insert": {
+      "sql": "INSERT INTO Students (id, name, father_name, phone, status) VALUES (%s, %s, %s, %s, %s)",
+      "params": ["id", "name", "father_name", "phone", "status"]
+    },
+    "update": {
+      "sql": "UPDATE Students SET name = %s, father_name = %s, phone = %s, status = %s WHERE id = %s",
+      "params": ["name", "father_name", "phone", "status", "id"]
+    },
+    "delete": {
+      "sql": "DELETE FROM Students WHERE id = %s",
+      "params": ["id"]
+    }
+  }
+}

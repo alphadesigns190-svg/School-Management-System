@@ -1,0 +1,60 @@
+{% extends "layout.html" %}
+
+{% block content %}
+  <section class="card card-row">
+    <div>
+      <h2>Payments</h2>
+      <p class="muted">Record and manage payments (multiple payments per student).</p>
+    </div>
+    <div class="actions">
+      <a class="btn" href="/payments/new">Record payment</a>
+      <a class="btn btn-ghost" href="/payments/balances">Fee balances</a>
+      <a class="btn btn-ghost" href="/payments/unpaid">Unpaid students</a>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Student</th>
+            <th>Amount</th>
+            <th>Date</th>
+            <th class="th-actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if payments|length == 0 %}
+            <tr>
+              <td colspan="5" class="muted">No payments found.</td>
+            </tr>
+          {% else %}
+            {% for p in payments %}
+              <tr>
+                <td>{{ p.get("id", "") }}</td>
+                <td>
+                  {{ p.get("student_name", "") }}
+                  <span class="muted">({{ p.get("student_id", "") }})</span>
+                </td>
+                <td>{{ p.get("amount", "") }}</td>
+                <td>{{ p.get("payment_date", "") }}</td>
+                <td class="td-actions">
+                  {% set pid = p.get("id") %}
+                  {% if pid %}
+                    <a class="link" href="/payments/{{ pid }}/edit">Edit</a>
+                    <form method="post" action="/payments/{{ pid }}/delete" class="inline">
+                      <button class="link danger js-confirm" type="submit" data-confirm="Delete this payment?">Delete</button>
+                    </form>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{% endblock %}
+

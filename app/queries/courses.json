@@ -1,0 +1,46 @@
+{
+  "id_field": "id",
+  "fields": [
+    { "name": "id", "label": "Course ID", "type": "text", "required": true },
+    { "name": "course_name", "label": "Course Name", "type": "text", "required": true },
+    { "name": "fee", "label": "Fee", "type": "number", "required": false },
+    { "name": "duration", "label": "Duration", "type": "text", "required": false },
+    {
+      "name": "shift",
+      "label": "Shift",
+      "type": "select",
+      "required": false,
+      "options": [
+        { "value": "Morning", "label": "Morning" },
+        { "value": "Evening", "label": "Evening" }
+      ]
+    },
+    { "name": "teacher_id", "label": "Teacher", "type": "select", "required": false }
+  ],
+  "queries": {
+    "list": {
+      "sql": "SELECT c.id, c.course_name, c.fee, c.duration, c.shift, c.teacher_id, t.name AS teacher_name FROM Courses c LEFT JOIN Teachers t ON t.id = c.teacher_id ORDER BY c.id",
+      "params": []
+    },
+    "get": {
+      "sql": "SELECT id, course_name, fee, duration, shift, teacher_id FROM Courses WHERE id = %s",
+      "params": ["id"]
+    },
+    "insert": {
+      "sql": "INSERT INTO Courses (id, course_name, fee, duration, shift, teacher_id) VALUES (%s, %s, %s, %s, %s, %s)",
+      "params": ["id", "course_name", "fee", "duration", "shift", "teacher_id"]
+    },
+    "update": {
+      "sql": "UPDATE Courses SET course_name = %s, fee = %s, duration = %s, shift = %s, teacher_id = %s WHERE id = %s",
+      "params": ["course_name", "fee", "duration", "shift", "teacher_id", "id"]
+    },
+    "delete": {
+      "sql": "DELETE FROM Courses WHERE id = %s",
+      "params": ["id"]
+    },
+    "teachers_select": {
+      "sql": "SELECT id, name FROM Teachers ORDER BY name",
+      "params": []
+    }
+  }
+}

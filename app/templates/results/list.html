@@ -1,0 +1,65 @@
+{% extends "layout.html" %}
+
+{% block content %}
+  <section class="card card-row">
+    <div>
+      <h2>Results</h2>
+      <p class="muted">Student marks with automatic total and grade.</p>
+    </div>
+    <div class="actions">
+      <a class="btn" href="/results/new">Add result</a>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Student</th>
+            <th>Month</th>
+            <th>Total</th>
+            <th>Grade</th>
+            <th class="th-actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if rows|length == 0 %}
+            <tr>
+              <td colspan="6" class="muted">No results found.</td>
+            </tr>
+          {% else %}
+            {% for r in rows %}
+              <tr>
+                <td>{{ r.get("id", "") }}</td>
+                <td>
+                  {{ r.get("student_name", "") }}
+                  <span class="muted">({{ r.get("student_id", "") }})</span>
+                </td>
+                <td>{{ r.get("month", "") }}</td>
+                <td>{{ r.get("total_marks", "") }}</td>
+                <td>
+                  {% set g = r.get("grade", "") %}
+                  {% if g %}
+                    <span class="badge {% if g in ['D','F'] %}badge-warn{% endif %}">{{ g }}</span>
+                  {% endif %}
+                </td>
+                <td class="td-actions">
+                  {% set rid = r.get("id") %}
+                  {% if rid %}
+                    <a class="link" href="/results/{{ rid }}/edit">Edit</a>
+                    <form method="post" action="/results/{{ rid }}/delete" class="inline">
+                      <button class="link danger js-confirm" type="submit" data-confirm="Delete this result?">Delete</button>
+                    </form>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{% endblock %}
+

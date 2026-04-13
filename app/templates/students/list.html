@@ -1,0 +1,60 @@
+{% extends "layout.html" %}
+
+{% block content %}
+  <section class="card card-row">
+    <div>
+      <h2>Students</h2>
+      <p class="muted">Manage students (view, add, edit, delete).</p>
+    </div>
+    <div class="actions">
+      <a class="btn" href="/students/new">Add student</a>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="table-wrap">
+      <table
+        class="table"
+        id="students-table"
+        data-fields='{{ fields | map(attribute="name") | list | tojson }}'
+        data-id-field="{{ id_field }}"
+      >
+        <thead>
+          <tr>
+            {% for f in fields %}
+              <th>{{ f.label }}</th>
+            {% endfor %}
+            <th class="th-actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if students|length == 0 %}
+            <tr>
+              <td colspan="{{ fields|length + 1 }}" class="muted">No students found.</td>
+            </tr>
+          {% else %}
+            {% for s in students %}
+              <tr>
+                {% for f in fields %}
+                  <td>{{ s.get(f.name, "") }}</td>
+                {% endfor %}
+                <td class="td-actions">
+                  {% set sid = s.get(id_field) %}
+                  {% if sid %}
+                    <a class="link" href="/students/{{ sid }}/edit">Edit</a>
+                    <a class="link" href="/reports/student/{{ sid }}">Report</a>
+                    <form method="post" action="/students/{{ sid }}/delete" class="inline">
+                      <button class="link danger js-confirm" type="submit" data-confirm="Delete this student?">Delete</button>
+                    </form>
+                  {% else %}
+                    <span class="muted">Set id_field</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{% endblock %}

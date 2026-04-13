@@ -1,0 +1,57 @@
+{% extends "layout.html" %}
+
+{% block content %}
+  <section class="card card-row">
+    <div>
+      <h2>Teachers</h2>
+      <p class="muted">View and add teachers.</p>
+    </div>
+    <div class="actions">
+      <a class="btn" href="/teachers/new">Add teacher</a>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="table-wrap">
+      <table
+        class="table"
+        id="teachers-table"
+        data-fields='{{ fields | map(attribute="name") | list | tojson }}'
+        data-id-field="id"
+      >
+        <thead>
+          <tr>
+            {% for f in fields %}
+              <th>{{ f.label }}</th>
+            {% endfor %}
+            <th class="th-actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if teachers|length == 0 %}
+            <tr>
+              <td colspan="{{ fields|length + 1 }}" class="muted">No teachers found.</td>
+            </tr>
+          {% else %}
+            {% for t in teachers %}
+              <tr>
+                {% for f in fields %}
+                  <td>{{ t.get(f.name, "") }}</td>
+                {% endfor %}
+                <td class="td-actions">
+                  {% set tid = t.get("id") %}
+                  {% if tid %}
+                    <a class="link" href="/teachers/{{ tid }}/edit">Edit</a>
+                    <form method="post" action="/teachers/{{ tid }}/delete" class="inline">
+                      <button class="link danger js-confirm" type="submit" data-confirm="Delete this teacher?">Delete</button>
+                    </form>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{% endblock %}

@@ -1,0 +1,99 @@
+{% extends "layout.html" %}
+
+{% block content %}
+  <section class="page-head">
+    <div>
+      <h2 class="page-title">Dashboard</h2>
+      <p class="muted">Overview of students, income, and unpaid fees.</p>
+    </div>
+  </section>
+
+  <section class="stats-grid">
+    <div class="stat-card stat-green">
+      <div class="stat-label">Total Students</div>
+      <div class="stat-value">{{ total_students }}</div>
+    </div>
+
+    <div class="stat-card stat-blue">
+      <div class="stat-label">Total Income</div>
+      <div class="stat-value">{{ total_income }}</div>
+    </div>
+
+    <div class="stat-card stat-orange">
+      <div class="stat-label">Unpaid Students</div>
+      <div class="stat-value">{{ unpaid_count }}</div>
+      <div class="stat-foot">
+        <a class="stat-link" href="/payments/unpaid">View list</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="grid-2">
+    <div class="card">
+      <div class="card-head">
+        <h3 class="card-title">Top Unpaid</h3>
+        <div class="actions">
+          <a class="btn btn-ghost" href="/payments/balances">All balances</a>
+          <a class="btn" href="/payments/new">Record payment</a>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Total Fee</th>
+              <th>Total Paid</th>
+              <th>Remaining</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if unpaid_top|length == 0 %}
+              <tr>
+                <td colspan="4" class="muted">No unpaid students.</td>
+              </tr>
+            {% else %}
+              {% for r in unpaid_top %}
+                <tr class="row-warn">
+                  <td>
+                    {{ r.get("student_name", "") }}
+                    <span class="muted">({{ r.get("student_id", "") }})</span>
+                  </td>
+                  <td>{{ r.get("total_fee", 0) }}</td>
+                  <td>{{ r.get("total_paid", 0) }}</td>
+                  <td><span class="badge badge-warn">{{ r.get("remaining", 0) }}</span></td>
+                </tr>
+              {% endfor %}
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h3 class="card-title">Quick Actions</h3>
+      </div>
+      <div class="quick-grid">
+        <a class="quick" href="/students/new">
+          <div class="quick-title">Add Student</div>
+          <div class="quick-sub">Register a new student</div>
+        </a>
+        <a class="quick" href="/teachers/new">
+          <div class="quick-title">Add Teacher</div>
+          <div class="quick-sub">Create a teacher profile</div>
+        </a>
+        <a class="quick" href="/courses/new">
+          <div class="quick-title">Add Course</div>
+          <div class="quick-sub">Create a new course</div>
+        </a>
+        <a class="quick" href="/enrollments/new">
+          <div class="quick-title">Enroll Student</div>
+          <div class="quick-sub">Assign student to course</div>
+        </a>
+      </div>
+    </div>
+  </section>
+{% endblock %}
+

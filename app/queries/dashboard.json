@@ -1,0 +1,21 @@
+{
+  "queries": {
+    "total_students": {
+      "sql": "SELECT COUNT(*) AS total_students FROM Students",
+      "params": []
+    },
+    "total_income": {
+      "sql": "SELECT COALESCE(SUM(amount), 0) AS total_income FROM Payments",
+      "params": []
+    },
+    "unpaid_count": {
+      "sql": "SELECT COUNT(*) AS unpaid_count FROM ( SELECT x.id AS student_id, ( (SELECT COALESCE(SUM(c.fee), 0) FROM Enrollments e JOIN Courses c ON c.id = e.course_id WHERE e.student_id = x.id) - (SELECT COALESCE(SUM(p.amount), 0) FROM Payments p WHERE p.student_id = x.id) ) AS remaining FROM Students x ) z WHERE z.remaining > 0",
+      "params": []
+    },
+    "unpaid_top": {
+      "sql": "SELECT y.student_id, y.student_name, y.total_fee, y.total_paid, y.remaining FROM ( SELECT x.id AS student_id, x.name AS student_name, x.total_fee, x.total_paid, (x.total_fee - x.total_paid) AS remaining FROM ( SELECT s.id, s.name, (SELECT COALESCE(SUM(c.fee), 0) FROM Enrollments e JOIN Courses c ON c.id = e.course_id WHERE e.student_id = s.id) AS total_fee, (SELECT COALESCE(SUM(p.amount), 0) FROM Payments p WHERE p.student_id = s.id) AS total_paid FROM Students s ) x ) y WHERE y.remaining > 0 ORDER BY y.remaining DESC, y.student_id LIMIT 8",
+      "params": []
+    }
+  }
+}
+

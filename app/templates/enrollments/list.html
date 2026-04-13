@@ -1,0 +1,63 @@
+{% extends "layout.html" %}
+
+{% block content %}
+  <section class="card card-row">
+    <div>
+      <h2>Enrollments</h2>
+      <p class="muted">Assign students to courses.</p>
+    </div>
+    <div class="actions">
+      <a class="btn" href="/enrollments/new">Add enrollment</a>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Student</th>
+            <th>Course</th>
+            <th>Start</th>
+            <th>End</th>
+            <th class="th-actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if enrollments|length == 0 %}
+            <tr>
+              <td colspan="6" class="muted">No enrollments found.</td>
+            </tr>
+          {% else %}
+            {% for e in enrollments %}
+              <tr>
+                <td>{{ e.get("id", "") }}</td>
+                <td>
+                  {{ e.get("student_name", "") }}
+                  <span class="muted">({{ e.get("student_id", "") }})</span>
+                </td>
+                <td>
+                  {{ e.get("course_name", "") }}
+                  <span class="muted">({{ e.get("course_id", "") }})</span>
+                </td>
+                <td>{{ e.get("start_date", "") }}</td>
+                <td>{{ e.get("end_date", "") }}</td>
+                <td class="td-actions">
+                  {% set eid = e.get("id") %}
+                  {% if eid %}
+                    <a class="link" href="/enrollments/{{ eid }}/edit">Edit</a>
+                    <form method="post" action="/enrollments/{{ eid }}/delete" class="inline">
+                      <button class="link danger js-confirm" type="submit" data-confirm="Delete this enrollment?">Delete</button>
+                    </form>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{% endblock %}
+

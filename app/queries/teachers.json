@@ -1,0 +1,40 @@
+{
+  "fields": [
+    { "name": "id", "label": "Teacher ID", "type": "text", "required": true },
+    { "name": "name", "label": "Name", "type": "text", "required": true },
+    { "name": "subject", "label": "Subject", "type": "text", "required": false },
+    { "name": "salary", "label": "Salary", "type": "number", "required": false },
+    {
+      "name": "shift",
+      "label": "Shift",
+      "type": "select",
+      "required": false,
+      "options": [
+        { "value": "Morning", "label": "Morning" },
+        { "value": "Evening", "label": "Evening" }
+      ]
+    }
+  ],
+  "queries": {
+    "list": {
+      "sql": "SELECT id, name, subject, salary, shift FROM Teachers ORDER BY id",
+      "params": []
+    },
+    "get": {
+      "sql": "SELECT id, name, subject, salary, shift FROM Teachers WHERE id = %s",
+      "params": ["id"]
+    },
+    "insert": {
+      "sql": "INSERT INTO Teachers (id, name, subject, salary, shift) VALUES (%s, %s, %s, %s, %s)",
+      "params": ["id", "name", "subject", "salary", "shift"]
+    },
+    "update": {
+      "sql": "UPDATE Teachers SET name = %s, subject = %s, salary = %s, shift = %s WHERE id = %s",
+      "params": ["name", "subject", "salary", "shift", "id"]
+    },
+    "delete": {
+      "sql": "DELETE FROM Teachers WHERE id = %s",
+      "params": ["id"]
+    }
+  }
+}

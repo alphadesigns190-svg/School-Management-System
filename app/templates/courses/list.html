@@ -1,0 +1,69 @@
+{% extends "layout.html" %}
+
+{% block content %}
+  <section class="card card-row">
+    <div>
+      <h2>Courses</h2>
+      <p class="muted">Manage courses and assign teachers.</p>
+    </div>
+    <div class="actions">
+      <a class="btn" href="/courses/new">Add course</a>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="table-wrap">
+      <table
+        class="table"
+        id="courses-table"
+        data-fields='["id","course_name","fee","duration","shift","teacher_id","teacher_name"]'
+        data-id-field="id"
+      >
+        <thead>
+          <tr>
+            <th>Course ID</th>
+            <th>Course Name</th>
+            <th>Fee</th>
+            <th>Duration</th>
+            <th>Shift</th>
+            <th>Teacher</th>
+            <th class="th-actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if courses|length == 0 %}
+            <tr>
+              <td colspan="7" class="muted">No courses found.</td>
+            </tr>
+          {% else %}
+            {% for c in courses %}
+              <tr>
+                <td>{{ c.get("id", "") }}</td>
+                <td>{{ c.get("course_name", "") }}</td>
+                <td>{{ c.get("fee", "") }}</td>
+                <td>{{ c.get("duration", "") }}</td>
+                <td>{{ c.get("shift", "") }}</td>
+                <td>
+                  {% if c.get("teacher_name") %}
+                    {{ c.get("teacher_name") }} ({{ c.get("teacher_id") }})
+                  {% else %}
+                    <span class="muted">—</span>
+                  {% endif %}
+                </td>
+                <td class="td-actions">
+                  {% set cid = c.get("id") %}
+                  {% if cid %}
+                    <a class="link" href="/courses/{{ cid }}/edit">Edit</a>
+                    <form method="post" action="/courses/{{ cid }}/delete" class="inline">
+                      <button class="link danger js-confirm" type="submit" data-confirm="Delete this course?">Delete</button>
+                    </form>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{% endblock %}

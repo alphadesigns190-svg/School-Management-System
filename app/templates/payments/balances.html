@@ -1,0 +1,56 @@
+{% extends "layout.html" %}
+
+{% block content %}
+  <section class="card card-row">
+    <div>
+      <h2>Fee Balances</h2>
+      <p class="muted">Total fee (sum of enrolled course fees) vs total paid.</p>
+    </div>
+    <div class="actions">
+      <a class="btn" href="/payments/new">Record payment</a>
+      <a class="btn btn-ghost" href="/payments/unpaid">Unpaid students</a>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Total Fee</th>
+            <th>Total Paid</th>
+            <th>Remaining</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if rows|length == 0 %}
+            <tr>
+              <td colspan="4" class="muted">No students found.</td>
+            </tr>
+          {% else %}
+            {% for r in rows %}
+              {% set remaining = r.get("remaining", 0) %}
+              <tr class="{% if remaining and remaining > 0 %}row-warn{% endif %}">
+                <td>
+                  {{ r.get("student_name", "") }}
+                  <span class="muted">({{ r.get("student_id", "") }})</span>
+                </td>
+                <td>{{ r.get("total_fee", 0) }}</td>
+                <td>{{ r.get("total_paid", 0) }}</td>
+                <td>
+                  {% if remaining and remaining > 0 %}
+                    <span class="badge badge-warn">{{ remaining }}</span>
+                  {% else %}
+                    <span class="badge">{{ remaining }}</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{% endblock %}
+

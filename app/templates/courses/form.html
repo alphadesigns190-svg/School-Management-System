@@ -1,0 +1,57 @@
+{% extends "layout.html" %}
+
+{% block content %}
+  <section class="card">
+    <h2>{{ heading }}</h2>
+    <p class="muted">{{ subheading }}</p>
+  </section>
+
+  <section class="card">
+    <form method="post" action="{{ action }}">
+      <div class="form-grid">
+        {% for f in fields %}
+          {% set is_id = (f.name == "id" and course) %}
+          <label class="field">
+            <span class="label">{{ f.label }}{% if f.required %} *{% endif %}</span>
+
+            {% if f.type == "select" and f.name == "teacher_id" %}
+              <select class="input" name="teacher_id">
+                <option value="">-- No teacher --</option>
+                {% for t in teachers %}
+                  {% set selected = (course and course.get("teacher_id") == t.id) %}
+                  <option value="{{ t.id }}" {% if selected %}selected{% endif %}>
+                    {{ t.name }} ({{ t.id }})
+                  </option>
+                {% endfor %}
+              </select>
+            {% elif f.type == "select" and f.options %}
+              <select class="input" name="{{ f.name }}" {% if f.required %}required{% endif %} {% if is_id %}disabled{% endif %}>
+                <option value="">-- Select --</option>
+                {% for opt in f.options %}
+                  {% set val = (opt.value if opt.value is defined else opt) %}
+                  {% set lab = (opt.label if opt.label is defined else opt) %}
+                  {% set selected = (course and course.get(f.name) == val) %}
+                  <option value="{{ val }}" {% if selected %}selected{% endif %}>{{ lab }}</option>
+                {% endfor %}
+              </select>
+            {% else %}
+              <input
+                class="input"
+                type="{{ f.type }}"
+                name="{{ f.name }}"
+                value="{{ (course.get(f.name) if course else '') }}"
+                {% if is_id %}readonly{% endif %}
+                {% if f.required %}required{% endif %}
+              />
+            {% endif %}
+          </label>
+        {% endfor %}
+      </div>
+
+      <div class="actions">
+        <button class="btn" type="submit">{{ submit_label }}</button>
+        <a class="btn btn-ghost" href="/courses">Cancel</a>
+      </div>
+    </form>
+  </section>
+{% endblock %}

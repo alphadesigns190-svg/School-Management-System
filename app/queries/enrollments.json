@@ -1,0 +1,40 @@
+{
+  "id_field": "id",
+  "fields": [
+    { "name": "student_id", "label": "Student", "type": "select", "required": true },
+    { "name": "course_id", "label": "Course", "type": "select", "required": true },
+    { "name": "start_date", "label": "Start Date", "type": "date", "required": false },
+    { "name": "end_date", "label": "End Date", "type": "date", "required": false }
+  ],
+  "queries": {
+    "list": {
+      "sql": "SELECT e.id, e.student_id, s.name AS student_name, e.course_id, c.course_name, e.start_date, e.end_date FROM Enrollments e LEFT JOIN Students s ON s.id = e.student_id LEFT JOIN Courses c ON c.id = e.course_id ORDER BY e.id DESC",
+      "params": []
+    },
+    "get": {
+      "sql": "SELECT id, student_id, course_id, start_date, end_date FROM Enrollments WHERE id = %s",
+      "params": ["id"]
+    },
+    "insert": {
+      "sql": "INSERT INTO Enrollments (student_id, course_id, start_date, end_date) VALUES (%s, %s, %s, %s)",
+      "params": ["student_id", "course_id", "start_date", "end_date"]
+    },
+    "update": {
+      "sql": "UPDATE Enrollments SET student_id = %s, course_id = %s, start_date = %s, end_date = %s WHERE id = %s",
+      "params": ["student_id", "course_id", "start_date", "end_date", "id"]
+    },
+    "delete": {
+      "sql": "DELETE FROM Enrollments WHERE id = %s",
+      "params": ["id"]
+    },
+    "students_select": {
+      "sql": "SELECT id, name FROM Students ORDER BY name",
+      "params": []
+    },
+    "courses_select": {
+      "sql": "SELECT id, course_name FROM Courses ORDER BY course_name",
+      "params": []
+    }
+  }
+}
+

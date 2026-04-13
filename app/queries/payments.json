@@ -1,0 +1,37 @@
+{
+  "queries": {
+    "list": {
+      "sql": "SELECT p.id, p.student_id, s.name AS student_name, p.amount, p.payment_date FROM Payments p LEFT JOIN Students s ON s.id = p.student_id ORDER BY p.id DESC",
+      "params": []
+    },
+    "get": {
+      "sql": "SELECT id, student_id, amount, payment_date FROM Payments WHERE id = %s",
+      "params": ["id"]
+    },
+    "insert": {
+      "sql": "INSERT INTO Payments (student_id, amount, payment_date) VALUES (%s, %s, %s)",
+      "params": ["student_id", "amount", "payment_date"]
+    },
+    "update": {
+      "sql": "UPDATE Payments SET student_id = %s, amount = %s, payment_date = %s WHERE id = %s",
+      "params": ["student_id", "amount", "payment_date", "id"]
+    },
+    "delete": {
+      "sql": "DELETE FROM Payments WHERE id = %s",
+      "params": ["id"]
+    },
+    "students_select": {
+      "sql": "SELECT id, name FROM Students ORDER BY name",
+      "params": []
+    },
+    "balances": {
+      "sql": "SELECT x.id AS student_id, x.name AS student_name, x.total_fee, x.total_paid, (x.total_fee - x.total_paid) AS remaining FROM ( SELECT s.id, s.name, (SELECT COALESCE(SUM(c.fee), 0) FROM Enrollments e JOIN Courses c ON c.id = e.course_id WHERE e.student_id = s.id) AS total_fee, (SELECT COALESCE(SUM(p.amount), 0) FROM Payments p WHERE p.student_id = s.id) AS total_paid FROM Students s ) x ORDER BY remaining DESC, student_id",
+      "params": []
+    },
+    "unpaid": {
+      "sql": "SELECT y.student_id, y.student_name, y.total_fee, y.total_paid, y.remaining FROM ( SELECT x.id AS student_id, x.name AS student_name, x.total_fee, x.total_paid, (x.total_fee - x.total_paid) AS remaining FROM ( SELECT s.id, s.name, (SELECT COALESCE(SUM(c.fee), 0) FROM Enrollments e JOIN Courses c ON c.id = e.course_id WHERE e.student_id = s.id) AS total_fee, (SELECT COALESCE(SUM(p.amount), 0) FROM Payments p WHERE p.student_id = s.id) AS total_paid FROM Students s ) x ) y WHERE y.remaining > 0 ORDER BY y.remaining DESC, y.student_id",
+      "params": []
+    }
+  }
+}
+

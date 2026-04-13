@@ -1,0 +1,22 @@
+{% extends "auth/layout.html" %}
+
+{% block content %}
+  <form method="post" action="/login" class="auth-form">
+    <input type="hidden" name="next" value="{{ next_url }}" />
+
+    <label class="field">
+      <span class="label">Username</span>
+      <input class="input" type="text" name="username" required autofocus />
+    </label>
+
+    <label class="field">
+      <span class="label">Password</span>
+      <input class="input" type="password" name="password" required />
+    </label>
+
+    <div class="actions">
+      <button class="btn" type="submit">Login</button>
+    </div>
+  </form>
+{% endblock %}
+

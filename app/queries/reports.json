@@ -1,0 +1,29 @@
+{
+  "queries": {
+    "student": {
+      "sql": "SELECT id, name, father_name, phone, status FROM Students WHERE id = %s",
+      "params": ["student_id"]
+    },
+    "enrollments": {
+      "sql": "SELECT e.course_id, c.course_name, c.fee, c.duration, c.shift, e.start_date, e.end_date, c.teacher_id, t.name AS teacher_name FROM Enrollments e JOIN Courses c ON c.id = e.course_id LEFT JOIN Teachers t ON t.id = c.teacher_id WHERE e.student_id = %s ORDER BY e.start_date DESC, e.id DESC",
+      "params": ["student_id"]
+    },
+    "payments": {
+      "sql": "SELECT id, amount, payment_date FROM Payments WHERE student_id = %s ORDER BY payment_date DESC, id DESC",
+      "params": ["student_id"]
+    },
+    "total_paid": {
+      "sql": "SELECT COALESCE(SUM(amount), 0) AS total_paid FROM Payments WHERE student_id = %s",
+      "params": ["student_id"]
+    },
+    "total_fee": {
+      "sql": "SELECT COALESCE(SUM(c.fee), 0) AS total_fee FROM Enrollments e JOIN Courses c ON c.id = e.course_id WHERE e.student_id = %s",
+      "params": ["student_id"]
+    },
+    "results": {
+      "sql": "SELECT id, month, quiz1, quiz2, quiz3, quiz4, exam20, exam30, interview, total_marks, grade FROM Results WHERE student_id = %s ORDER BY id DESC",
+      "params": ["student_id"]
+    }
+  }
+}
+

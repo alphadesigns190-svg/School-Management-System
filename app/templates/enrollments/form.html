@@ -1,0 +1,56 @@
+{% extends "layout.html" %}
+
+{% block content %}
+  <section class="card">
+    <h2>{{ heading }}</h2>
+    <p class="muted">{{ subheading }}</p>
+  </section>
+
+  <section class="card">
+    <form method="post" action="{{ action }}">
+      <div class="form-grid">
+        {% for f in fields %}
+          <label class="field">
+            <span class="label">{{ f.label }}{% if f.required %} *{% endif %}</span>
+
+            {% if f.type == "select" and f.name == "student_id" %}
+              <select class="input" name="student_id" {% if f.required %}required{% endif %}>
+                <option value="">-- Select student --</option>
+                {% for s in students %}
+                  {% set selected = (enrollment and enrollment.get("student_id") == s.id) %}
+                  <option value="{{ s.id }}" {% if selected %}selected{% endif %}>
+                    {{ s.name }} ({{ s.id }})
+                  </option>
+                {% endfor %}
+              </select>
+            {% elif f.type == "select" and f.name == "course_id" %}
+              <select class="input" name="course_id" {% if f.required %}required{% endif %}>
+                <option value="">-- Select course --</option>
+                {% for c in courses %}
+                  {% set selected = (enrollment and enrollment.get("course_id") == c.id) %}
+                  <option value="{{ c.id }}" {% if selected %}selected{% endif %}>
+                    {{ c.course_name }} ({{ c.id }})
+                  </option>
+                {% endfor %}
+              </select>
+            {% else %}
+              <input
+                class="input"
+                type="{{ f.type }}"
+                name="{{ f.name }}"
+                value="{{ (enrollment.get(f.name) if enrollment else '') }}"
+                {% if f.required %}required{% endif %}
+              />
+            {% endif %}
+          </label>
+        {% endfor %}
+      </div>
+
+      <div class="actions">
+        <button class="btn" type="submit">{{ submit_label }}</button>
+        <a class="btn btn-ghost" href="/enrollments">Cancel</a>
+      </div>
+    </form>
+  </section>
+{% endblock %}
+

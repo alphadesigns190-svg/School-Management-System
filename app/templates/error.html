@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+
+{% block content %}
+  <section class="card">
+    <h2>Action needed</h2>
+    <p class="muted">{{ message }}</p>
+  </section>
+
+  <section class="card">
+    <h3>What to do</h3>
+    <ul>
+      <li>Open <code>app/queries/students.json</code></li>
+      <li>Paste your SQL into <code>queries.*.sql</code> (list/get/insert/update/delete)</li>
+      <li>Make sure <code>queries.*.params</code> matches your placeholder order</li>
+      <li>Update <code>fields</code> and <code>id_field</code> to match your students table</li>
+    </ul>
+  </section>
+{% endblock %}
+
