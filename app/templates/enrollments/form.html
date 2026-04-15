@@ -4,25 +4,37 @@
   <section class="card">
     <h2>{{ heading }}</h2>
     <p class="muted">{{ subheading }}</p>
+    {% if enrollment_code is defined %}
+      <p class="muted">Enrollment Code: <strong>{{ enrollment_code }}</strong></p>
+    {% else %}
+      <p class="muted">Enrollment Code will be generated automatically.</p>
+    {% endif %}
   </section>
 
   <section class="card">
-    <form method="post" action="{{ action }}">
+    <form method="post" action="{{ action or '/enrollments' }}">
       <div class="form-grid">
         {% for f in fields %}
           <label class="field">
             <span class="label">{{ f.label }}{% if f.required %} *{% endif %}</span>
 
-            {% if f.type == "select" and f.name == "student_id" %}
-              <select class="input" name="student_id" {% if f.required %}required{% endif %}>
-                <option value="">-- Select student --</option>
-                {% for s in students %}
-                  {% set selected = (enrollment and enrollment.get("student_id") == s.id) %}
-                  <option value="{{ s.id }}" {% if selected %}selected{% endif %}>
-                    {{ s.name }} ({{ s.id }})
-                  </option>
-                {% endfor %}
-              </select>
+            {% if f.name == "student_id" %}
+              <div class="input-prefix-wrap">
+                <span class="input-prefix">ST-</span>
+                <input
+                  class="input js-enrollment-student-number"
+                  type="text"
+                  name="student_number"
+                  value="{{ student_number if student_number is defined else '' }}"
+                  placeholder="001"
+                  maxlength="3"
+                  inputmode="numeric"
+                  pattern="[0-9]{3}"
+                  required
+                  autocomplete="off"
+                />
+              </div>
+              <input class="js-enrollment-student-id-hidden" type="hidden" name="student_id" value="{{ enrollment.get('student_id') if enrollment else '' }}" />
             {% elif f.type == "select" and f.name == "course_id" %}
               <select class="input" name="course_id" {% if f.required %}required{% endif %}>
                 <option value="">-- Select course --</option>
@@ -46,6 +58,20 @@
         {% endfor %}
       </div>
 
+      <div class="card card-inner no-print" style="margin-top:14px;">
+        <div class="card-head">
+          <h3 class="card-title">Student Preview</h3>
+        </div>
+        <div class="report-grid">
+          <div><span class="muted">Student ID:</span> <strong id="enrollment-student-id">-</strong></div>
+          <div><span class="muted">Name:</span> <strong id="enrollment-student-name">-</strong></div>
+          <div><span class="muted">Father Name:</span> <span id="enrollment-student-father">-</span></div>
+          <div><span class="muted">Phone:</span> <span id="enrollment-student-phone">-</span></div>
+          <div><span class="muted">Status:</span> <span id="enrollment-student-status">-</span></div>
+          <div><span class="muted">Current Course:</span> <span id="enrollment-student-course">-</span></div>
+        </div>
+      </div>
+
       <div class="actions">
         <button class="btn" type="submit">{{ submit_label }}</button>
         <a class="btn btn-ghost" href="/enrollments">Cancel</a>
@@ -53,4 +79,3 @@
     </form>
   </section>
 {% endblock %}
-

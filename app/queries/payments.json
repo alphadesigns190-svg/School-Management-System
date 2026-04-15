@@ -24,6 +24,10 @@
       "sql": "SELECT id, name FROM Students ORDER BY name",
       "params": []
     },
+    "student_lookup": {
+      "sql": "SELECT s.id, s.name, s.father_name, s.status, e.course_id, c.course_name, c.shift, e.start_date, e.end_date, COALESCE((SELECT SUM(c2.fee) FROM Enrollments e2 JOIN Courses c2 ON c2.id = e2.course_id WHERE e2.student_id = s.id), 0) AS total_fee, COALESCE((SELECT SUM(p.amount) FROM Payments p WHERE p.student_id = s.id), 0) AS total_paid, COALESCE((SELECT SUM(c3.fee) FROM Enrollments e3 JOIN Courses c3 ON c3.id = e3.course_id WHERE e3.student_id = s.id), 0) - COALESCE((SELECT SUM(p2.amount) FROM Payments p2 WHERE p2.student_id = s.id), 0) AS remaining_balance FROM Students s LEFT JOIN Enrollments e ON e.id = (SELECT e2.id FROM Enrollments e2 WHERE e2.student_id = s.id ORDER BY e2.id DESC LIMIT 1) LEFT JOIN Courses c ON c.id = e.course_id WHERE s.id = %s",
+      "params": ["student_id"]
+    },
     "balances": {
       "sql": "SELECT x.id AS student_id, x.name AS student_name, x.total_fee, x.total_paid, (x.total_fee - x.total_paid) AS remaining FROM ( SELECT s.id, s.name, (SELECT COALESCE(SUM(c.fee), 0) FROM Enrollments e JOIN Courses c ON c.id = e.course_id WHERE e.student_id = s.id) AS total_fee, (SELECT COALESCE(SUM(p.amount), 0) FROM Payments p WHERE p.student_id = s.id) AS total_paid FROM Students s ) x ORDER BY remaining DESC, student_id",
       "params": []
@@ -34,4 +38,3 @@
     }
   }
 }
-

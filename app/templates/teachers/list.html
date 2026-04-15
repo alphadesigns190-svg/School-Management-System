@@ -36,7 +36,13 @@
             {% for t in teachers %}
               <tr>
                 {% for f in fields %}
-                  <td>{{ t.get(f.name, "") }}</td>
+                  <td>
+                    {% if f.name == "salary" %}
+                      {{ t.get("salary", 0) | afn }}
+                    {% else %}
+                      {{ t.get(f.name, "") }}
+                    {% endif %}
+                  </td>
                 {% endfor %}
                 <td class="td-actions">
                   {% set tid = t.get("id") %}

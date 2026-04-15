@@ -16,7 +16,7 @@
       <table class="table">
         <thead>
           <tr>
-            <th>ID</th>
+            <th>Code</th>
             <th>Student</th>
             <th>Course</th>
             <th>Start</th>
@@ -32,7 +32,7 @@
           {% else %}
             {% for e in enrollments %}
               <tr>
-                <td>{{ e.get("id", "") }}</td>
+                <td>EN-{{ "%03d"|format(e.get("id", 0)|int) }}</td>
                 <td>
                   {{ e.get("student_name", "") }}
                   <span class="muted">({{ e.get("student_id", "") }})</span>
@@ -60,4 +60,3 @@
     </div>
   </section>
 {% endblock %}
-

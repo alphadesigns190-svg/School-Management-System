@@ -9,6 +9,14 @@
     <div class="actions">
       <a class="btn" href="/payments/new">Record payment</a>
       <a class="btn btn-ghost" href="/payments/unpaid">Unpaid students</a>
+      <details class="menu-dropdown">
+        <summary class="btn btn-ghost">Reports ▾</summary>
+        <div class="menu-dropdown-list">
+          <a class="menu-dropdown-item" href="/payments/report/weekly">Weekly report</a>
+          <a class="menu-dropdown-item" href="/payments/report/monthly">Monthly report</a>
+          <a class="menu-dropdown-item" href="/payments/report/3months">3 months report</a>
+        </div>
+      </details>
     </div>
   </section>
 
@@ -36,13 +44,13 @@
                   {{ r.get("student_name", "") }}
                   <span class="muted">({{ r.get("student_id", "") }})</span>
                 </td>
-                <td>{{ r.get("total_fee", 0) }}</td>
-                <td>{{ r.get("total_paid", 0) }}</td>
+                <td>{{ r.get("total_fee", 0) | afn }}</td>
+                <td>{{ r.get("total_paid", 0) | afn }}</td>
                 <td>
                   {% if remaining and remaining > 0 %}
-                    <span class="badge badge-warn">{{ remaining }}</span>
+                    <span class="badge badge-warn">{{ remaining | afn }}</span>
                   {% else %}
-                    <span class="badge">{{ remaining }}</span>
+                    <span class="badge">{{ remaining | afn }}</span>
                   {% endif %}
                 </td>
               </tr>
@@ -53,4 +61,3 @@
     </div>
   </section>
 {% endblock %}
-

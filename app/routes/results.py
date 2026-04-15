@@ -3,6 +3,7 @@ from flask import Blueprint, current_app, flash, redirect, render_template, requ
 from ..db import execute, fetch_all, fetch_one
 from ..queries.loader import load_query_config, require_query
 from ..services.results_calc import calculate_total_and_grade
+from ..services.validators import clean_text, is_valid_module_id, parse_non_negative_int
 
 results_bp = Blueprint("results", __name__, url_prefix="/results")
 
@@ -15,6 +16,20 @@ def _students_options(cfg):
     q = require_query(cfg, "students_select")
     rows = fetch_all(current_app, q["sql"], q.get("params", []), request_source=request)
     return [{"id": r.get("id"), "name": r.get("name")} for r in rows]
+
+
+def _validate_marks(payload: dict) -> str | None:
+    fields = ["quiz1", "quiz2", "quiz3", "quiz4", "exam20", "exam30", "interview"]
+    for field in fields:
+        raw = (payload.get(field) or "").strip()
+        if raw == "":
+            continue
+        parsed = parse_non_negative_int(raw)
+        if parsed is None:
+            return f"{field} must be a valid non-negative number."
+        if parsed > 100:
+            return f"{field} cannot be greater than 100."
+    return None
 
 
 @results_bp.get("")
@@ -47,13 +62,20 @@ def create_result():
     q = require_query(cfg, "insert")
 
     payload = dict(request.form)
-    student_id = (payload.get("student_id") or "").strip()
-    month = (payload.get("month") or "").strip()
+    student_id = clean_text(payload.get("student_id"), 10)
+    month = clean_text(payload.get("month"), 20)
     if not student_id:
         flash("Student is required.", "error")
         return redirect("/results/new")
+    if not is_valid_module_id(student_id, "ST"):
+        flash("Student ID format is invalid.", "error")
+        return redirect("/results/new")
     if not month:
         flash("Month is required.", "error")
+        return redirect("/results/new")
+    marks_error = _validate_marks(payload)
+    if marks_error:
+        flash(marks_error, "error")
         return redirect("/results/new")
 
     total, grade = calculate_total_and_grade(payload)
@@ -103,13 +125,20 @@ def update_result(result_id: int):
     q = require_query(cfg, "update")
 
     payload = dict(request.form)
-    student_id = (payload.get("student_id") or "").strip()
-    month = (payload.get("month") or "").strip()
+    student_id = clean_text(payload.get("student_id"), 10)
+    month = clean_text(payload.get("month"), 20)
     if not student_id:
         flash("Student is required.", "error")
         return redirect(f"/results/{result_id}/edit")
+    if not is_valid_module_id(student_id, "ST"):
+        flash("Student ID format is invalid.", "error")
+        return redirect(f"/results/{result_id}/edit")
     if not month:
         flash("Month is required.", "error")
+        return redirect(f"/results/{result_id}/edit")
+    marks_error = _validate_marks(payload)
+    if marks_error:
+        flash(marks_error, "error")
         return redirect(f"/results/{result_id}/edit")
 
     total, grade = calculate_total_and_grade(payload)
@@ -139,4 +168,3 @@ def delete_result(result_id: int):
     execute(current_app, q["sql"], [result_id], request_source=request)
     flash("Result deleted.", "success")
     return redirect("/results")
-

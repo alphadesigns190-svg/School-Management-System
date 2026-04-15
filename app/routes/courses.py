@@ -3,6 +3,7 @@ from flask import Blueprint, current_app, flash, jsonify, redirect, render_templ
 from ..db import execute, fetch_all, fetch_one
 from ..queries.loader import load_query_config, require_query
 from ..services.id_generator import mysql_named_lock, next_formatted_id
+from ..services.validators import clean_text, is_valid_module_id, parse_non_negative_int
 
 courses_bp = Blueprint("courses", __name__, url_prefix="/courses")
 
@@ -41,10 +42,12 @@ def _search_courses(search: str):
     like = f"%{search}%"
     sql = (
         "SELECT c.id, c.course_name, c.fee, c.duration, c.shift, c.teacher_id, "
-        "t.name AS teacher_name "
+        "t.name AS teacher_name, COALESCE(COUNT(DISTINCT e.student_id), 0) AS student_count "
         "FROM Courses c "
         "LEFT JOIN Teachers t ON t.id = c.teacher_id "
+        "LEFT JOIN Enrollments e ON e.course_id = c.id "
         "WHERE c.id LIKE %s OR c.course_name LIKE %s "
+        "GROUP BY c.id, c.course_name, c.fee, c.duration, c.shift, c.teacher_id, t.name "
         "ORDER BY c.id"
     )
     return fetch_all(current_app, sql, [like, like], request_source=request)
@@ -54,11 +57,25 @@ def _search_courses(search: str):
 def list_courses():
     cfg = _get_config()
     search = (request.args.get("q") or "").strip()
+    base_sql = (
+        "SELECT c.id, c.course_name, c.fee, c.duration, c.shift, c.teacher_id, "
+        "t.name AS teacher_name, COALESCE(COUNT(DISTINCT e.student_id), 0) AS student_count "
+        "FROM Courses c "
+        "LEFT JOIN Teachers t ON t.id = c.teacher_id "
+        "LEFT JOIN Enrollments e ON e.course_id = c.id "
+    )
+
     if search:
         courses = _search_courses(search)
     else:
-        q = require_query(cfg, "list")
-        courses = fetch_all(current_app, q["sql"], q.get("params", []), request_source=request)
+        courses = fetch_all(
+            current_app,
+            base_sql
+            + "GROUP BY c.id, c.course_name, c.fee, c.duration, c.shift, c.teacher_id, t.name "
+            + "ORDER BY c.id",
+            [],
+            request_source=request,
+        )
 
     return render_template("courses/list.html", title="Courses", courses=courses, search=search)
 
@@ -93,6 +110,21 @@ def new_course():
 def create_course():
     cfg = _get_config()
     q = require_query(cfg, "insert")
+    course_name = clean_text(request.form.get("course_name"), 50)
+    fee = parse_non_negative_int(request.form.get("fee"))
+    duration = clean_text(request.form.get("duration"), 20)
+    shift = clean_text(request.form.get("shift"), 20)
+    teacher_id = clean_text(request.form.get("teacher_id"), 10)
+
+    if not course_name:
+        flash("Course name is required.", "error")
+        return redirect("/courses/new")
+    if request.form.get("fee", "").strip() and fee is None:
+        flash("Fee must be a valid non-negative number.", "error")
+        return redirect("/courses/new")
+    if teacher_id and not is_valid_module_id(teacher_id, "TE"):
+        flash("Teacher ID format is invalid.", "error")
+        return redirect("/courses/new")
 
     from ..db import get_connection
 
@@ -104,15 +136,23 @@ def create_course():
             new_id = next_formatted_id(conn, table="Courses", id_column="id", prefix="CS", width=3)
 
             values = []
-            for name in q.get("params", []):
-                if name == "id":
+            for param_name in q.get("params", []):
+                if param_name == "id":
                     values.append(new_id)
                     continue
 
-                raw = request.form.get(name, "")
-                if name == "teacher_id" and (raw is None or str(raw).strip() == ""):
-                    values.append(None)
+                if param_name == "course_name":
+                    values.append(course_name)
+                elif param_name == "fee":
+                    values.append(fee)
+                elif param_name == "duration":
+                    values.append(duration)
+                elif param_name == "shift":
+                    values.append(shift)
+                elif param_name == "teacher_id":
+                    values.append(teacher_id)
                 else:
+                    raw = request.form.get(param_name, "")
                     cleaned = raw.strip() if isinstance(raw, str) else raw
                     values.append(cleaned if cleaned != "" else None)
 
@@ -155,17 +195,40 @@ def edit_course(course_id: str):
 def update_course(course_id: str):
     cfg = _get_config()
     q = require_query(cfg, "update")
+    course_name = clean_text(request.form.get("course_name"), 50)
+    fee = parse_non_negative_int(request.form.get("fee"))
+    duration = clean_text(request.form.get("duration"), 20)
+    shift = clean_text(request.form.get("shift"), 20)
+    teacher_id = clean_text(request.form.get("teacher_id"), 10)
+
+    if not course_name:
+        flash("Course name is required.", "error")
+        return redirect(f"/courses/{course_id}/edit")
+    if request.form.get("fee", "").strip() and fee is None:
+        flash("Fee must be a valid non-negative number.", "error")
+        return redirect(f"/courses/{course_id}/edit")
+    if teacher_id and not is_valid_module_id(teacher_id, "TE"):
+        flash("Teacher ID format is invalid.", "error")
+        return redirect(f"/courses/{course_id}/edit")
 
     values = []
-    for name in q.get("params", []):
-        if name == "id":
+    for param_name in q.get("params", []):
+        if param_name == "id":
             values.append(course_id)
             continue
 
-        raw = request.form.get(name, "")
-        if name == "teacher_id" and (raw is None or str(raw).strip() == ""):
-            values.append(None)
+        if param_name == "course_name":
+            values.append(course_name)
+        elif param_name == "fee":
+            values.append(fee)
+        elif param_name == "duration":
+            values.append(duration)
+        elif param_name == "shift":
+            values.append(shift)
+        elif param_name == "teacher_id":
+            values.append(teacher_id)
         else:
+            raw = request.form.get(param_name, "")
             values.append(raw.strip() if isinstance(raw, str) else raw)
 
     execute(current_app, q["sql"], values, request_source=request)

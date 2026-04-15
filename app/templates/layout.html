@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
@@ -9,72 +9,97 @@
   </head>
   <body>
     {% set path = request.path %}
-    <div class="shell">
-      <header class="app-header no-print">
-        <div class="header-left">
-          <button class="nav-toggle" type="button" aria-label="Menu" data-nav-toggle>☰</button>
-          <a class="brand" href="/dashboard">
-            <span class="brand-mark">LC</span>
-            <span class="brand-text">Learning Center</span>
+    {% set is_students = path.startswith('/students') %}
+    {% set is_teachers = path.startswith('/teachers') %}
+    {% set is_courses = path.startswith('/courses') %}
+    {% set show_search = is_students or is_teachers or is_courses %}
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="sidebar-brand">
+          <a class="logo" href="/dashboard">
+            <span class="logo-text">{{ school_name }}</span>
           </a>
         </div>
 
-        <nav class="app-nav" data-nav>
-          <a class="nav-link {% if path.startswith('/dashboard') %}active{% endif %}" href="/dashboard">Dashboard</a>
-          <a class="nav-link {% if path.startswith('/students') %}active{% endif %}" href="/students">Students</a>
-          <a class="nav-link {% if path.startswith('/teachers') %}active{% endif %}" href="/teachers">Teachers</a>
-          <a class="nav-link {% if path.startswith('/courses') %}active{% endif %}" href="/courses">Courses</a>
-          <a class="nav-link {% if path.startswith('/enrollments') %}active{% endif %}" href="/enrollments">Enrollments</a>
-          <a class="nav-link {% if path.startswith('/payments') %}active{% endif %}" href="/payments">Payments</a>
-          <a class="nav-link {% if path.startswith('/results') %}active{% endif %}" href="/results">Results</a>
+        <nav class="sidebar-nav">
+          <a class="nav-item {% if path.startswith('/dashboard') %}active{% endif %}" href="/dashboard">
+            <span class="nav-dot"></span> Dashboard
+          </a>
+          <a class="nav-item {% if path.startswith('/students') %}active{% endif %}" href="/students">
+            <span class="nav-dot"></span> Students
+          </a>
+          <a class="nav-item {% if path.startswith('/teachers') %}active{% endif %}" href="/teachers">
+            <span class="nav-dot"></span> Teachers
+          </a>
+          <a class="nav-item {% if path.startswith('/courses') %}active{% endif %}" href="/courses">
+            <span class="nav-dot"></span> Courses
+          </a>
+          <a class="nav-item {% if path.startswith('/enrollments') %}active{% endif %}" href="/enrollments">
+            <span class="nav-dot"></span> Enrollments
+          </a>
+          <a class="nav-item {% if path.startswith('/payments') %}active{% endif %}" href="/payments">
+            <span class="nav-dot"></span> Payments
+          </a>
+          <a class="nav-item {% if path.startswith('/results') %}active{% endif %}" href="/results">
+            <span class="nav-dot"></span> Results
+          </a>
         </nav>
 
-        <div class="header-right">
-          {% set is_students = path.startswith('/students') %}
-          {% set is_teachers = path.startswith('/teachers') %}
-          {% set is_courses = path.startswith('/courses') %}
-          {% set enabled = is_students or is_teachers or is_courses %}
-          {% set action = '/students' if is_students else ('/teachers' if is_teachers else ('/courses' if is_courses else '#')) %}
-          {% set placeholder = 'Search students by ID, name, father name...' if is_students else ('Search teachers by ID or name...' if is_teachers else ('Search courses by ID or name...' if is_courses else 'Search...')) %}
-
-          <form method="get" action="{{ action }}" class="header-search no-print">
-            <input
-              class="input input-search js-global-search"
-              type="search"
-              name="q"
-              placeholder="{{ placeholder }}"
-              value="{{ request.args.get('q', '') if enabled else '' }}"
-              {% if not enabled %}disabled{% endif %}
-              autocomplete="off"
-            />
-          </form>
-
-          <a class="btn btn-small no-print" href="/payments/new">+ Payment</a>
-          <form method="post" action="/logout" class="inline">
-            <button class="btn btn-ghost btn-small" type="submit">Logout</button>
-          </form>
+        <div class="sidebar-bottom">
+          <a class="nav-item {% if path.startswith('/account') %}active{% endif %}" href="/account">
+            <span class="nav-dot"></span> Account
+          </a>
+          <div class="sidebar-meta">
+            <div>Designed by: Muhammad Essa Ahmadi</div>
+            <div>Version : V1.0</div>
+          </div>
         </div>
-      </header>
+      </aside>
 
-      <div class="page-wrap">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-            <div class="flash-area">
-              {% for category, message in messages %}
-                <div class="flash flash-{{ category }}">{{ message }}</div>
-              {% endfor %}
+      <div class="content">
+        <header class="topbar {% if show_search %}topbar-with-search{% endif %}">
+          <div class="topbar-left">
+            <div class="topbar-title">{{ school_name }}</div>
+            {% if title %}
+              <div class="topbar-subtitle muted">{{ title }}</div>
+            {% endif %}
+          </div>
+
+          {% if show_search %}
+            {% set action = '/students' if is_students else ('/teachers' if is_teachers else '/courses') %}
+            {% set placeholder = 'Search students by ID, name, father name...' if is_students else ('Search teachers by ID or name...' if is_teachers else 'Search courses by ID or name...') %}
+            <div class="topbar-search">
+              <form method="get" action="{{ action }}" class="topbar-search-form">
+                <input
+                  class="search js-global-search"
+                  type="search"
+                  name="q"
+                  placeholder="{{ placeholder }}"
+                  value="{{ request.args.get('q', '') }}"
+                  autocomplete="off"
+                />
+              </form>
             </div>
           {% endif %}
-        {% endwith %}
 
-        <main class="page-main">
-          {% block content %}{% endblock %}
-        </main>
+        </header>
+
+        <div class="page">
+          {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+              <div class="flash-area">
+                {% for category, message in messages %}
+                  <div class="flash flash-{{ category }}">{{ message }}</div>
+                {% endfor %}
+              </div>
+            {% endif %}
+          {% endwith %}
+
+          <main>
+            {% block content %}{% endblock %}
+          </main>
+        </div>
       </div>
-
-      <footer class="app-footer no-print">
-        <div class="muted">© {{ 2026 }} Learning Center</div>
-      </footer>
     </div>
   </body>
 </html>

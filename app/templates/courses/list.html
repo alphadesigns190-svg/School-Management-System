@@ -16,7 +16,7 @@
       <table
         class="table"
         id="courses-table"
-        data-fields='["id","course_name","fee","duration","shift","teacher_id","teacher_name"]'
+        data-fields='["id","course_name","fee","duration","shift","teacher_id","teacher_name","student_count"]'
         data-id-field="id"
       >
         <thead>
@@ -27,29 +27,31 @@
             <th>Duration</th>
             <th>Shift</th>
             <th>Teacher</th>
+            <th>Students</th>
             <th class="th-actions">Actions</th>
           </tr>
         </thead>
         <tbody>
           {% if courses|length == 0 %}
             <tr>
-              <td colspan="7" class="muted">No courses found.</td>
+              <td colspan="8" class="muted">No courses found.</td>
             </tr>
           {% else %}
             {% for c in courses %}
               <tr>
                 <td>{{ c.get("id", "") }}</td>
                 <td>{{ c.get("course_name", "") }}</td>
-                <td>{{ c.get("fee", "") }}</td>
+                <td>{{ c.get("fee", 0) | afn }}</td>
                 <td>{{ c.get("duration", "") }}</td>
                 <td>{{ c.get("shift", "") }}</td>
                 <td>
                   {% if c.get("teacher_name") %}
                     {{ c.get("teacher_name") }} ({{ c.get("teacher_id") }})
                   {% else %}
-                    <span class="muted">—</span>
+                    <span class="muted">-</span>
                   {% endif %}
                 </td>
+                <td>{{ c.get("student_count", 0) }}</td>
                 <td class="td-actions">
                   {% set cid = c.get("id") %}
                   {% if cid %}

@@ -1,4 +1,4 @@
-import os
+﻿import os
 
 from dotenv import load_dotenv
 
@@ -12,6 +12,7 @@ class Config:
 
         self.ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
         self.ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123")
+        self.SCHOOL_NAME = os.getenv("SCHOOL_NAME", "Learning Center")
 
         self.MYSQL_HOST = os.getenv("MYSQL_HOST", "localhost")
         self.MYSQL_PORT = int(os.getenv("MYSQL_PORT", "3306"))

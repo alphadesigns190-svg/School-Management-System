@@ -7,7 +7,7 @@
   </section>
 
   <section class="card">
-    <form method="post" action="{{ action }}">
+    <form method="post" action="{{ action or ('/students/' ~ student.get('id') if student else '/students') }}">
       <div class="form-grid">
         {% for f in fields %}
           {% set is_id = (f.name == "id" and student) %}
@@ -29,6 +29,7 @@
                 type="{{ f.type }}"
                 name="{{ f.name }}"
                 value="{{ (student.get(f.name) if student else '') }}"
+                {% if f.name == "phone" %}placeholder="+93700123456" inputmode="tel" pattern="[0-9+()\\-\\s]{9,20}"{% endif %}
                 {% if is_id %}readonly{% endif %}
                 {% if f.required %}required{% endif %}
               />

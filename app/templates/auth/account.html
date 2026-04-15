@@ -1,0 +1,66 @@
+﻿{% extends "layout.html" %}
+
+{% block content %}
+  <section class="card">
+    <h2>Account Settings</h2>
+    <p class="muted">Manage school name, admin username, password, and logout from here.</p>
+  </section>
+
+  <section class="card">
+    <div class="card-head">
+      <h3 class="card-title">Current Account</h3>
+    </div>
+    <p><span class="muted">School Name:</span> <strong>{{ school_name }}</strong></p>
+    <p><span class="muted">Username:</span> <strong>{{ admin_username }}</strong></p>
+    <p class="muted">Password is stored securely as a hash.</p>
+  </section>
+
+  <section class="card">
+    <div class="card-head">
+      <h3 class="card-title">Update Settings</h3>
+    </div>
+    <form method="post" action="/account">
+      <div class="form-grid">
+        <label class="field">
+          <span class="label">School Name *</span>
+          <input class="input" type="text" name="school_name" value="{{ school_name }}" maxlength="100" required />
+        </label>
+
+        <label class="field">
+          <span class="label">New Username *</span>
+          <input class="input" type="text" name="username" value="{{ admin_username }}" minlength="3" maxlength="50" required />
+        </label>
+
+        <label class="field">
+          <span class="label">Current Password *</span>
+          <input class="input" type="password" name="current_password" required />
+        </label>
+
+        <label class="field">
+          <span class="label">New Password</span>
+          <input class="input" type="password" name="new_password" minlength="6" />
+        </label>
+
+        <label class="field">
+          <span class="label">Confirm New Password</span>
+          <input class="input" type="password" name="confirm_password" minlength="6" />
+        </label>
+      </div>
+
+      <p class="muted">Leave new password fields empty to keep your current password.</p>
+      <div class="actions">
+        <button class="btn" type="submit">Save Settings</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="card">
+    <div class="card-head">
+      <h3 class="card-title">Session</h3>
+    </div>
+    <p class="muted">You can sign out from this device anytime.</p>
+    <form method="post" action="/logout" class="inline">
+      <button class="btn btn-ghost" type="submit">Logout</button>
+    </form>
+  </section>
+{% endblock %}

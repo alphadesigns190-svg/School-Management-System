@@ -34,6 +34,20 @@
                   <option value="{{ val }}" {% if selected %}selected{% endif %}>{{ lab }}</option>
                 {% endfor %}
               </select>
+            {% elif f.name == "fee" %}
+              <div class="input-prefix-wrap">
+                <span class="input-prefix">؋&nbsp;&nbsp;</span>
+                <input
+                  class="input"
+                  type="{{ f.type }}"
+                  min="0"
+                  step="1"
+                  name="{{ f.name }}"
+                  value="{{ (course.get(f.name) if course else '') }}"
+                  {% if is_id %}readonly{% endif %}
+                  {% if f.required %}required{% endif %}
+                />
+              </div>
             {% else %}
               <input
                 class="input"

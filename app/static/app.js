@@ -9,22 +9,18 @@ document.addEventListener("click", (e) => {
   }
 });
 
-document.addEventListener("click", (e) => {
-  const target = e.target;
-  if (!(target instanceof HTMLElement)) return;
-  if (!target.hasAttribute("data-nav-toggle")) return;
-
-  const nav = document.querySelector("[data-nav]");
-  if (!(nav instanceof HTMLElement)) return;
-  nav.classList.toggle("open");
-});
-
 function debounce(fn, waitMs) {
   let t = null;
   return (...args) => {
     if (t) window.clearTimeout(t);
     t = window.setTimeout(() => fn(...args), waitMs);
   };
+}
+
+function formatAfn(value) {
+  const n = Number(value ?? 0);
+  if (!Number.isFinite(n)) return `؋\u00A0\u00A0${value ?? 0}`;
+  return `؋\u00A0\u00A0${Math.round(n).toLocaleString()}`;
 }
 
 async function updateStudentsTable(searchValue) {
@@ -170,7 +166,8 @@ async function updateTeachersTable(searchValue) {
     const tr = document.createElement("tr");
     for (const name of fields) {
       const td = document.createElement("td");
-      td.textContent = t?.[name] ?? "";
+      if (name === "salary") td.textContent = formatAfn(t?.[name] ?? 0);
+      else td.textContent = t?.[name] ?? "";
       tr.appendChild(td);
     }
 
@@ -252,7 +249,7 @@ async function updateCoursesTable(searchValue) {
     const tr = document.createElement("tr");
     const td = document.createElement("td");
     td.className = "muted";
-    td.colSpan = 7;
+    td.colSpan = 8;
     td.textContent = "No courses found.";
     tr.appendChild(td);
     tbody.appendChild(tr);
@@ -265,10 +262,11 @@ async function updateCoursesTable(searchValue) {
     const cells = [
       c?.id ?? "",
       c?.course_name ?? "",
-      c?.fee ?? "",
+      formatAfn(c?.fee ?? 0),
       c?.duration ?? "",
       c?.shift ?? "",
       c?.teacher_name ? `${c.teacher_name} (${c.teacher_id ?? ""})` : "—",
+      c?.student_count ?? 0,
     ];
     for (const text of cells) {
       const td = document.createElement("td");
@@ -332,6 +330,170 @@ function setupCoursesTopSearch() {
   }
 }
 
+async function updatePaymentStudentPreview(studentId) {
+  const nameEl = document.getElementById("payment-student-name");
+  const fatherEl = document.getElementById("payment-student-father");
+  const courseEl = document.getElementById("payment-student-course");
+  const shiftEl = document.getElementById("payment-student-shift");
+  const idEl = document.getElementById("payment-student-id");
+  const totalFeeEl = document.getElementById("payment-total-fee");
+  const totalPaidEl = document.getElementById("payment-total-paid");
+  const remainingEl = document.getElementById("payment-remaining-balance");
+  if (!nameEl || !fatherEl || !courseEl || !shiftEl || !totalFeeEl || !totalPaidEl || !remainingEl) return;
+
+  const clearPreview = () => {
+    if (idEl) idEl.textContent = "-";
+    nameEl.textContent = "-";
+    fatherEl.textContent = "-";
+    courseEl.textContent = "-";
+    shiftEl.textContent = "-";
+    totalFeeEl.textContent = "-";
+    totalPaidEl.textContent = "-";
+    remainingEl.textContent = "-";
+  };
+
+  const digits = (studentId || "").trim().replace(/\D/g, "");
+  const id = digits ? `ST-${digits.padStart(3, "0")}` : "";
+  if (!id) {
+    clearPreview();
+    return;
+  }
+
+  const res = await fetch(`/payments/student-info/${encodeURIComponent(id)}`, {
+    headers: { "Accept": "application/json" },
+  });
+  if (!res.ok) {
+    clearPreview();
+    return;
+  }
+
+  const data = await res.json();
+  if (!data || !data.found || !data.student) {
+    clearPreview();
+    nameEl.textContent = "Student not found";
+    return;
+  }
+
+  const student = data.student;
+  if (idEl) idEl.textContent = student.id || id;
+  nameEl.textContent = student.name || "-";
+  fatherEl.textContent = student.father_name || "-";
+  courseEl.textContent = student.course_name ? `${student.course_name} (${student.course_id || "-"})` : "No course assigned";
+  shiftEl.textContent = student.shift || "-";
+  totalFeeEl.textContent = formatAfn(student.total_fee ?? 0);
+  totalPaidEl.textContent = formatAfn(student.total_paid ?? 0);
+  remainingEl.textContent = formatAfn(student.remaining_balance ?? 0);
+}
+
+function setupPaymentLookup() {
+  if (!window.location.pathname.startsWith("/payments")) return;
+  const input = document.querySelector(".js-payment-student-number");
+  if (!(input instanceof HTMLInputElement)) return;
+  const hidden = document.querySelector(".js-payment-student-id-hidden");
+  if (!(hidden instanceof HTMLInputElement)) return;
+
+  const handler = debounce(() => {
+    const digits = input.value.replace(/\D/g, "").slice(0, 3);
+    input.value = digits;
+    hidden.value = digits ? `ST-${digits.padStart(3, "0")}` : "";
+    updatePaymentStudentPreview(input.value);
+  }, 250);
+
+  input.addEventListener("input", handler);
+  input.addEventListener("blur", handler);
+  handler();
+}
+
+async function updateEnrollmentStudentPreview(studentNumber) {
+  const idEl = document.getElementById("enrollment-student-id");
+  const nameEl = document.getElementById("enrollment-student-name");
+  const fatherEl = document.getElementById("enrollment-student-father");
+  const phoneEl = document.getElementById("enrollment-student-phone");
+  const statusEl = document.getElementById("enrollment-student-status");
+  const courseEl = document.getElementById("enrollment-student-course");
+  if (!idEl || !nameEl || !fatherEl || !phoneEl || !statusEl || !courseEl) return;
+
+  const clearPreview = () => {
+    idEl.textContent = "-";
+    nameEl.textContent = "-";
+    fatherEl.textContent = "-";
+    phoneEl.textContent = "-";
+    statusEl.textContent = "-";
+    courseEl.textContent = "-";
+  };
+
+  const digits = (studentNumber || "").trim().replace(/\D/g, "");
+  const studentId = digits ? `ST-${digits.padStart(3, "0")}` : "";
+  if (!studentId) {
+    clearPreview();
+    return;
+  }
+
+  const res = await fetch(`/enrollments/student-info/${encodeURIComponent(studentId)}`, {
+    headers: { Accept: "application/json" },
+  });
+  if (!res.ok) {
+    clearPreview();
+    return;
+  }
+
+  const data = await res.json();
+  if (!data || !data.found || !data.student) {
+    clearPreview();
+    nameEl.textContent = "Student not found";
+    return;
+  }
+
+  const student = data.student;
+  idEl.textContent = student.id || studentId;
+  nameEl.textContent = student.name || "-";
+  fatherEl.textContent = student.father_name || "-";
+  phoneEl.textContent = student.phone || "-";
+  statusEl.textContent = student.status || "-";
+  courseEl.textContent = student.course_name ? `${student.course_name} (${student.course_id || "-"})` : "No course assigned";
+}
+
+function setupEnrollmentLookup() {
+  if (!window.location.pathname.startsWith("/enrollments")) return;
+  const input = document.querySelector(".js-enrollment-student-number");
+  if (!(input instanceof HTMLInputElement)) return;
+  const hidden = document.querySelector(".js-enrollment-student-id-hidden");
+  if (!(hidden instanceof HTMLInputElement)) return;
+
+  const handler = debounce(() => {
+    const digits = input.value.replace(/\D/g, "").slice(0, 3);
+    input.value = digits;
+    hidden.value = digits ? `ST-${digits.padStart(3, "0")}` : "";
+    updateEnrollmentStudentPreview(input.value);
+  }, 250);
+
+  input.addEventListener("input", handler);
+  input.addEventListener("blur", handler);
+  handler();
+}
+
+function setupDropdownPolish() {
+  const dropdowns = Array.from(document.querySelectorAll("details.menu-dropdown"));
+  if (dropdowns.length === 0) return;
+
+  dropdowns.forEach((dropdown) => {
+    dropdown.addEventListener("toggle", () => {
+      if (!dropdown.open) return;
+      dropdowns.forEach((other) => {
+        if (other !== dropdown) other.open = false;
+      });
+    });
+  });
+
+  document.addEventListener("click", (e) => {
+    const target = e.target;
+    if (!(target instanceof Node)) return;
+    dropdowns.forEach((dropdown) => {
+      if (!dropdown.contains(target)) dropdown.open = false;
+    });
+  });
+}
+
 function gradeFromTotal(total) {
   if (total >= 90) return "A";
   if (total >= 80) return "B";
@@ -369,5 +531,8 @@ document.addEventListener("DOMContentLoaded", () => {
   setupStudentsTopSearch();
   setupTeachersTopSearch();
   setupCoursesTopSearch();
+  setupPaymentLookup();
+  setupEnrollmentLookup();
+  setupDropdownPolish();
   calcResultForm();
 });

@@ -24,36 +24,36 @@
 
         <label class="field">
           <span class="label">Month *</span>
-          <input class="input" type="text" name="month" value="{{ result.get('month') if result else '' }}" required />
+          <input class="input" type="text" maxlength="20" name="month" value="{{ result.get('month') if result else '' }}" required />
         </label>
 
         <label class="field">
           <span class="label">Quiz 1</span>
-          <input class="input js-mark" type="number" name="quiz1" value="{{ result.get('quiz1') if result else '' }}" />
+          <input class="input js-mark" type="number" min="0" max="100" step="1" name="quiz1" value="{{ result.get('quiz1') if result else '' }}" />
         </label>
         <label class="field">
           <span class="label">Quiz 2</span>
-          <input class="input js-mark" type="number" name="quiz2" value="{{ result.get('quiz2') if result else '' }}" />
+          <input class="input js-mark" type="number" min="0" max="100" step="1" name="quiz2" value="{{ result.get('quiz2') if result else '' }}" />
         </label>
         <label class="field">
           <span class="label">Quiz 3</span>
-          <input class="input js-mark" type="number" name="quiz3" value="{{ result.get('quiz3') if result else '' }}" />
+          <input class="input js-mark" type="number" min="0" max="100" step="1" name="quiz3" value="{{ result.get('quiz3') if result else '' }}" />
         </label>
         <label class="field">
           <span class="label">Quiz 4</span>
-          <input class="input js-mark" type="number" name="quiz4" value="{{ result.get('quiz4') if result else '' }}" />
+          <input class="input js-mark" type="number" min="0" max="100" step="1" name="quiz4" value="{{ result.get('quiz4') if result else '' }}" />
         </label>
         <label class="field">
           <span class="label">Exam (20)</span>
-          <input class="input js-mark" type="number" name="exam20" value="{{ result.get('exam20') if result else '' }}" />
+          <input class="input js-mark" type="number" min="0" max="100" step="1" name="exam20" value="{{ result.get('exam20') if result else '' }}" />
         </label>
         <label class="field">
           <span class="label">Exam (30)</span>
-          <input class="input js-mark" type="number" name="exam30" value="{{ result.get('exam30') if result else '' }}" />
+          <input class="input js-mark" type="number" min="0" max="100" step="1" name="exam30" value="{{ result.get('exam30') if result else '' }}" />
         </label>
         <label class="field">
           <span class="label">Interview</span>
-          <input class="input js-mark" type="number" name="interview" value="{{ result.get('interview') if result else '' }}" />
+          <input class="input js-mark" type="number" min="0" max="100" step="1" name="interview" value="{{ result.get('interview') if result else '' }}" />
         </label>
 
         <label class="field">
@@ -73,4 +73,3 @@
     </form>
   </section>
 {% endblock %}
-

@@ -1,0 +1,5 @@
+{
+  "username": "admin",
+  "password_hash": "scrypt:32768:8:1$HNTWCaVuHoBDyAbU$63010ef0a967f50095ecf6fa66d4219252beb663210af5ecb6d571c7eb4bdfc3f44a1de359856fa73fc9668e673eef4b3351afae8af9ca116043944b94ab8ba1",
+  "school_name": "Shadman Academy"
+}

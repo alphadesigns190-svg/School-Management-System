@@ -4,6 +4,7 @@ from flask import jsonify
 from ..db import execute, fetch_all, fetch_one
 from ..queries.loader import load_query_config, require_query
 from ..services.id_generator import mysql_named_lock, next_formatted_id
+from ..services.validators import clean_text, parse_non_negative_int
 
 teachers_bp = Blueprint("teachers", __name__, url_prefix="/teachers")
 
@@ -89,8 +90,23 @@ def new_teacher():
 
 @teachers_bp.post("")
 def create_teacher():
+    existing_id = (request.form.get("id") or "").strip()
+    if existing_id:
+        return update_teacher(existing_id)
+
     cfg = _get_config()
     q = require_query(cfg, "insert")
+    teacher_name = clean_text(request.form.get("name"), 50)
+    subject = clean_text(request.form.get("subject"), 50)
+    shift = clean_text(request.form.get("shift"), 20)
+    salary = parse_non_negative_int(request.form.get("salary"))
+
+    if not teacher_name:
+        flash("Teacher name is required.", "error")
+        return redirect("/teachers/new")
+    if request.form.get("salary", "").strip() and salary is None:
+        flash("Salary must be a valid non-negative number.", "error")
+        return redirect("/teachers/new")
 
     from ..db import get_connection
 
@@ -102,13 +118,22 @@ def create_teacher():
             new_id = next_formatted_id(conn, table="Teachers", id_column="id", prefix="TE", width=3)
 
             values = []
-            for name in q.get("params", []):
-                if name == "id":
+            for param_name in q.get("params", []):
+                if param_name == "id":
                     values.append(new_id)
                 else:
-                    raw = request.form.get(name, "")
-                    cleaned = raw.strip() if isinstance(raw, str) else raw
-                    values.append(cleaned if cleaned != "" else None)
+                    if param_name == "name":
+                        values.append(teacher_name)
+                    elif param_name == "subject":
+                        values.append(subject)
+                    elif param_name == "salary":
+                        values.append(salary)
+                    elif param_name == "shift":
+                        values.append(shift)
+                    else:
+                        raw = request.form.get(param_name, "")
+                        cleaned = raw.strip() if isinstance(raw, str) else raw
+                        values.append(cleaned if cleaned != "" else None)
 
             cur = conn.cursor(dictionary=True, buffered=True)
             cur.execute(q["sql"], values)
@@ -148,13 +173,34 @@ def update_teacher(teacher_id: str):
     cfg = _get_config()
     q = require_query(cfg, "update")
 
+    teacher_name = clean_text(request.form.get("name"), 50)
+    subject = clean_text(request.form.get("subject"), 50)
+    shift = clean_text(request.form.get("shift"), 20)
+    salary = parse_non_negative_int(request.form.get("salary"))
+
+    if not teacher_name:
+        flash("Teacher name is required.", "error")
+        return redirect(f"/teachers/{teacher_id}/edit")
+    if request.form.get("salary", "").strip() and salary is None:
+        flash("Salary must be a valid non-negative number.", "error")
+        return redirect(f"/teachers/{teacher_id}/edit")
+
     values = []
-    for name in q.get("params", []):
-        if name == "id":
+    for param_name in q.get("params", []):
+        if param_name == "id":
             values.append(teacher_id)
         else:
-            raw = request.form.get(name, "")
-            values.append(raw.strip() if isinstance(raw, str) else raw)
+            if param_name == "name":
+                values.append(teacher_name)
+            elif param_name == "subject":
+                values.append(subject)
+            elif param_name == "salary":
+                values.append(salary)
+            elif param_name == "shift":
+                values.append(shift)
+            else:
+                raw = request.form.get(param_name, "")
+                values.append(raw.strip() if isinstance(raw, str) else raw)
 
     execute(current_app, q["sql"], values, request_source=request)
     flash("Teacher updated.", "success")

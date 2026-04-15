@@ -1,7 +1,7 @@
 {
   "id_field": "id",
   "fields": [
-    { "name": "student_id", "label": "Student", "type": "select", "required": true },
+    { "name": "student_id", "label": "Student ID", "type": "text", "required": true },
     { "name": "course_id", "label": "Course", "type": "select", "required": true },
     { "name": "start_date", "label": "Start Date", "type": "date", "required": false },
     { "name": "end_date", "label": "End Date", "type": "date", "required": false }
@@ -28,8 +28,12 @@
       "params": ["id"]
     },
     "students_select": {
-      "sql": "SELECT id, name FROM Students ORDER BY name",
+      "sql": "SELECT id, name FROM Students ORDER BY id",
       "params": []
+    },
+    "student_lookup": {
+      "sql": "SELECT s.id, s.name, s.father_name, s.phone, s.status, e.course_id, c.course_name FROM Students s LEFT JOIN Enrollments e ON e.id = (SELECT e2.id FROM Enrollments e2 WHERE e2.student_id = s.id ORDER BY e2.id DESC LIMIT 1) LEFT JOIN Courses c ON c.id = e.course_id WHERE s.id = %s",
+      "params": ["student_id"]
     },
     "courses_select": {
       "sql": "SELECT id, course_name FROM Courses ORDER BY course_name",
@@ -37,4 +41,3 @@
     }
   }
 }
-

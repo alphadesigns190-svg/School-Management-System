@@ -7,7 +7,7 @@
   </section>
 
   <section class="card">
-    <form method="post" action="{{ action }}">
+    <form method="post" action="{{ action or ('/teachers/' ~ teacher.get('id') if teacher else '/teachers') }}">
       <div class="form-grid">
         {% for f in fields %}
           {% set is_id = (f.name == "id" and teacher) %}
@@ -24,14 +24,30 @@
                 {% endfor %}
               </select>
             {% else %}
-              <input
-                class="input"
-                type="{{ f.type }}"
-                name="{{ f.name }}"
-                value="{{ (teacher.get(f.name) if teacher else '') }}"
-                {% if is_id %}readonly{% endif %}
-                {% if f.required %}required{% endif %}
-              />
+              {% if f.name == "salary" %}
+                <div class="input-prefix-wrap">
+                  <span class="input-prefix">؋&nbsp;&nbsp;</span>
+                  <input
+                    class="input"
+                    type="{{ f.type }}"
+                    min="0"
+                    step="1"
+                    name="{{ f.name }}"
+                    value="{{ (teacher.get(f.name) if teacher else '') }}"
+                    {% if is_id %}readonly{% endif %}
+                    {% if f.required %}required{% endif %}
+                  />
+                </div>
+              {% else %}
+                <input
+                  class="input"
+                  type="{{ f.type }}"
+                  name="{{ f.name }}"
+                  value="{{ (teacher.get(f.name) if teacher else '') }}"
+                  {% if is_id %}readonly{% endif %}
+                  {% if f.required %}required{% endif %}
+                />
+              {% endif %}
             {% endif %}
           </label>
         {% endfor %}
