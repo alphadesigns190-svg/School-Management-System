@@ -1,13 +1,17 @@
 ﻿import json
-import os
+
+from pathlib import Path
+
+from .runtime_paths import ensure_parent, resolve_data_path
 
 
 def _settings_path(app) -> str:
-    return os.path.join(app.root_path, "data", "admin_settings.json")
+    raw = app.config.get("ADMIN_SETTINGS_PATH", "app/data/admin_settings.json")
+    return str(resolve_data_path(raw))
 
 
 def _legacy_path(app) -> str:
-    return os.path.join(app.root_path, "data", "admin_account.json")
+    return str(resolve_data_path("app/data/admin_account.json"))
 
 
 def load_admin_settings(app) -> dict:
@@ -20,20 +24,16 @@ def load_admin_settings(app) -> dict:
     payload = None
     path = _settings_path(app)
 
-    if os.path.exists(path):
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            payload = json.load(f)
+    except (OSError, json.JSONDecodeError):
+        legacy = _legacy_path(app)
         try:
-            with open(path, "r", encoding="utf-8") as f:
+            with open(legacy, "r", encoding="utf-8") as f:
                 payload = json.load(f)
         except (OSError, json.JSONDecodeError):
             payload = None
-    else:
-        legacy = _legacy_path(app)
-        if os.path.exists(legacy):
-            try:
-                with open(legacy, "r", encoding="utf-8") as f:
-                    payload = json.load(f)
-            except (OSError, json.JSONDecodeError):
-                payload = None
 
     if not isinstance(payload, dict):
         return defaults
@@ -56,7 +56,7 @@ def save_admin_settings(app, username: str, password_hash: str, school_name: str
     }
 
     path = _settings_path(app)
-    os.makedirs(os.path.dirname(path), exist_ok=True)
+    ensure_parent(Path(path))
     with open(path, "w", encoding="utf-8") as f:
         json.dump(payload, f, indent=2, ensure_ascii=False)
 

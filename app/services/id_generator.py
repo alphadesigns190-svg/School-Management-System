@@ -1,3 +1,4 @@
+﻿import re
 from contextlib import contextmanager
 
 
@@ -5,46 +6,51 @@ class IdGenerationError(RuntimeError):
     pass
 
 
+def _safe_identifier(name: str) -> str:
+    if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", name or ""):
+        raise IdGenerationError(f"Unsafe identifier: {name}")
+    return name
+
+
 @contextmanager
 def mysql_named_lock(conn, name: str, timeout_seconds: int = 5):
-    cur = conn.cursor(dictionary=True, buffered=True)
-    acquired = False
+    started = False
     try:
-        cur.execute("SELECT GET_LOCK(%s, %s) AS got", [name, timeout_seconds])
-        row = cur.fetchone() or {}
-        if row.get("got") != 1:
-            raise IdGenerationError(f"Could not acquire ID lock: {name}")
-        acquired = True
+        if not conn.in_transaction:
+            conn.execute("BEGIN IMMEDIATE")
+            started = True
         yield
-    finally:
-        if acquired:
-            cur.execute("SELECT RELEASE_LOCK(%s) AS released", [name])
-            cur.fetchone()
-        cur.close()
+    except Exception:
+        if started and conn.in_transaction:
+            conn.rollback()
+        raise
 
 
 def next_formatted_id(conn, *, table: str, id_column: str, prefix: str, width: int = 3) -> str:
-    """
-    Generates the next ID based on the maximum numeric suffix in the table.
-    Example: prefix='ST' => ST-001, ST-002, ...
-
-    Important: To avoid duplicates under concurrent requests, call this inside
-    a MySQL named lock (GET_LOCK) and insert in the same transaction/connection.
-    """
+    table_name = _safe_identifier(table)
+    id_col = _safe_identifier(id_column)
     code_prefix = f"{prefix}-"
-    start_pos = len(code_prefix) + 1  # MySQL SUBSTRING is 1-based
-    regex = f"^{prefix}-[0-9]+$"
 
-    cur = conn.cursor(dictionary=True, buffered=True)
-    sql = (
-        f"SELECT COALESCE(MAX(CAST(SUBSTRING({id_column}, {start_pos}) AS UNSIGNED)), 0) AS max_num "
-        f"FROM {table} WHERE {id_column} REGEXP %s"
-    )
+    cur = conn.cursor()
     try:
-        cur.execute(sql, [regex])
-        row = cur.fetchone() or {}
+        cur.execute(
+            f"SELECT {id_col} FROM {table_name} WHERE {id_col} LIKE ?",
+            [f"{code_prefix}%"],
+        )
+        rows = cur.fetchall()
     finally:
         cur.close()
-    max_num = int(row.get("max_num") or 0)
+
+    max_num = 0
+    for row in rows:
+        value = row[0] if isinstance(row, (tuple, list)) else row[id_col]
+        text = str(value or "")
+        if not text.startswith(code_prefix):
+            continue
+        suffix = text[len(code_prefix):]
+        if not suffix.isdigit():
+            continue
+        max_num = max(max_num, int(suffix))
+
     next_num = max_num + 1
     return f"{code_prefix}{str(next_num).zfill(width)}"

@@ -1,18 +1,19 @@
-﻿from flask import Flask, flash, jsonify, redirect, render_template, request, session
-from mysql.connector.errors import DatabaseError, IntegrityError
+﻿import sqlite3
+
+from flask import Flask, flash, jsonify, redirect, render_template, request, session
 from werkzeug.security import generate_password_hash
 
 from .config import Config
-from .routes.health import health_bp
 from .routes.auth import auth_bp
+from .routes.courses import courses_bp
 from .routes.dashboard import dashboard_bp
+from .routes.enrollments import enrollments_bp
+from .routes.health import health_bp
+from .routes.payments import payments_bp
+from .routes.reports import reports_bp
+from .routes.results import results_bp
 from .routes.students import students_bp
 from .routes.teachers import teachers_bp
-from .routes.courses import courses_bp
-from .routes.enrollments import enrollments_bp
-from .routes.payments import payments_bp
-from .routes.results import results_bp
-from .routes.reports import reports_bp
 from .services.admin_settings import load_admin_settings
 
 
@@ -75,15 +76,15 @@ def create_app():
         best = request.accept_mimetypes.best_match(["application/json", "text/html"])
         return best == "application/json"
 
-    @app.errorhandler(IntegrityError)
+    @app.errorhandler(sqlite3.IntegrityError)
     def handle_integrity_error(err):
-        errno = getattr(err, "errno", None)
-        if errno == 1451:
+        text = (str(err) or "").lower()
+        if "foreign key constraint failed" in text:
             message = "You cannot delete or update this entry because it is used elsewhere."
-        elif errno == 1452:
-            message = "This action references missing related data. Please check linked records."
-        elif errno == 1062:
+        elif "unique constraint failed" in text:
             message = "This value already exists. Please use a unique value."
+        elif "not null constraint failed" in text:
+            message = "Required data is missing. Please check input values."
         else:
             message = "Database integrity error. Please check related data and try again."
 
@@ -93,7 +94,7 @@ def create_app():
         flash(message, "error")
         return redirect(request.referrer or "/dashboard")
 
-    @app.errorhandler(DatabaseError)
+    @app.errorhandler(sqlite3.DatabaseError)
     def handle_database_error(err):
         message = "A database error occurred. Please try again."
         if _wants_json():

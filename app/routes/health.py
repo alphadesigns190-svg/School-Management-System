@@ -1,4 +1,4 @@
-from flask import Blueprint, current_app, jsonify
+﻿from flask import Blueprint, current_app, jsonify
 
 from ..db import get_connection
 
@@ -14,8 +14,7 @@ def health():
 def db_ping():
     conn = get_connection(current_app)
     try:
-        conn.ping(reconnect=False, attempts=1, delay=0)
+        conn.execute("SELECT 1")
         return jsonify({"db": "ok"})
     finally:
         conn.close()
-

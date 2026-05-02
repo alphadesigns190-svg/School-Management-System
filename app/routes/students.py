@@ -1,6 +1,6 @@
 from flask import Blueprint, current_app, flash, jsonify, redirect, render_template, request
 
-from ..db import execute, fetch_all, fetch_one
+from ..db import adapt_sql, execute, fetch_all, fetch_one
 from ..queries.loader import load_query_config, require_query
 from ..services.id_generator import mysql_named_lock, next_formatted_id
 from ..services.validators import clean_text, is_valid_phone, normalize_phone
@@ -118,7 +118,6 @@ def create_student():
     conn = get_connection(current_app)
     new_id = None
     try:
-        conn.start_transaction()
         with mysql_named_lock(conn, "lcms:students:id", timeout_seconds=5):
             new_id = next_formatted_id(
                 conn, table="Students", id_column=cfg.get("id_field", "id"), prefix="ST", width=3
@@ -142,8 +141,8 @@ def create_student():
                         cleaned = raw.strip() if isinstance(raw, str) else raw
                         values.append(cleaned if cleaned != "" else None)
 
-            cur = conn.cursor(dictionary=True, buffered=True)
-            cur.execute(q["sql"], values)
+            cur = conn.cursor()
+            cur.execute(adapt_sql(q["sql"]), values)
         conn.commit()
 
     finally:
